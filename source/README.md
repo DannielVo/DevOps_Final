@@ -1,91 +1,158 @@
-# Product API + UI (Express + MongoDB, fallback in-memory)
+# Product Management Application (Express + MongoDB with In-Memory Fallback)
 
-> Lưu ý: Dự án này được cung cấp làm nền tảng tham khảo cho sinh viên thực hiện bài presentation giữa kỳ trong môn 502094 - Software Deployment, Operations And Maintenance (biên soạn: ThS. Mai Văn Mạnh). Sinh viên không bắt buộc phải sử dụng đúng dự án này — có thể tự chọn hoặc xây dựng một project tương đương (hoặc phức tạp hơn), sử dụng ngôn ngữ hoặc framework khác nếu muốn.
+## 1. Overview
 
-Đây là một project mẫu tổ chức theo mô hình MVC (Model — View — Controller) xây dựng bằng Node.js + Express, dùng MongoDB (Mongoose) để lưu trữ dữ liệu sản phẩm. Nếu server không kết nối được tới MongoDB trong lần khởi động (timeout 3s), ứng dụng sẽ tự động chuyển sang dùng một datastore `in-memory` và tiếp tục chạy.
+This project is a sample **Product Management Web Application** built using **Node.js** and **Express**, following the **MVC (Model–View–Controller)** architecture.
 
-**Tính năng chính**
-- API REST đầy đủ cho quản lý Product: CRUD (GET/POST/PUT/PATCH/DELETE).
-- UI server-side render bằng `EJS` kết hợp `Bootstrap` để quản lý sản phẩm (giao diện ở `/`).
-- Mỗi response JSON kèm theo thông tin `hostname` và `source` (dữ liệu đang lấy từ `mongodb` hay `in-memory`).
-- Hỗ trợ upload ảnh cho sản phẩm: ảnh được lưu trên đĩa trong `public/uploads/` và trường `imageUrl` trong product lưu đường dẫn tương đối (`/uploads/<filename>`).
-- Khi cập nhật hoặc xóa product, file ảnh cũ (nằm trong `/uploads/`) sẽ bị xóa khỏi đĩa.
-- Khi khởi động và nếu kết nối MongoDB thành công và collection rỗng, ứng dụng sẽ tự seed 10 sản phẩm Apple mẫu vào MongoDB.
+The application uses **MongoDB (via Mongoose)** as the primary data source. If the server fails to connect to MongoDB during startup (within a 3-second timeout), it will automatically fall back to an **in-memory datastore**, ensuring that the application remains operational.
 
-**Cấu trúc chính**
-- `main.js` — entrypoint: kết nối MongoDB (timeout 3s), fallback in-memory, khởi chạy Express.
-- `models/product.js` — Mongoose schema (`name`, `price`, `color`, `description`, `imageUrl`).
-- `services/dataSource.js` — lớp trừu tượng giữa MongoDB và in-memory (seed, CRUD, xóa file khi cần).
-- `controllers/` — controller xử lý logic request/response.
-- `routes/` — route cho API (`/products`) và UI (`/`).
-- `views/` — `EJS` templates cho UI.
-- `public/` — tệp tĩnh: CSS, JS, `uploads/` (ảnh được lưu ở đây).
+This project serves as the **foundation for the DevOps Final Project** in the course _Software Deployment, Operations and Maintenance_.
 
-**Yêu cầu & cấu hình**
-- Node.js 16+ (hoặc phiên bản tương thích) và `npm`.
-- File môi trường `.env` (đã có file mẫu trong repo):
+---
 
-```text
+## 2. Key Features
+
+- Full **RESTful API** for product management (CRUD operations)
+- Server-side rendered UI using **EJS** and **Bootstrap**
+- Automatic fallback from **MongoDB → in-memory datastore**
+- Product image upload using `multipart/form-data`
+- Uploaded images stored in `public/uploads/`
+- Automatic deletion of old images when updating or deleting products
+- JSON responses include:
+  - `hostname` (server identifier)
+  - `source` (mongodb or in-memory)
+- Automatic seeding of sample product data when MongoDB is empty
+
+---
+
+## 3. Project Structure
+
+```bash
+source/
+│
+├── main.js         # Application entry point
+├── models/         # Mongoose schemas
+├── controllers/    # Request/response handling logic
+├── routes/         # API and UI routes
+├── services/       # Data source abstraction layer
+├── views/          # EJS templates (UI)
+├── public/         # Static files (CSS, JS, uploads)
+└── .env            # Environment variables
+```
+
+---
+
+## 4. Requirements
+
+- Node.js (version 16 or higher)
+- npm (Node Package Manager)
+- MongoDB (local or remote instance)
+
+---
+
+## 5. Environment Configuration
+
+Create a `.env` file in the root directory:
+
+```bash
 PORT=3000
 MONGO_URI=mongodb://localhost:27017/products_db
 ```
 
-Nếu bạn muốn kết nối MongoDB có username/password, chỉnh `MONGO_URI` tương ứng.
+If authentication is required, update the MongoDB URI accordingly.
 
-**Cài đặt & chạy trên máy local**
-1. Cài dependencies:
+---
+
+## 6. Installation & Running Locally
+
+### 1. Install dependencies
 
 ```bash
-cd /Users/mvmanh/Desktop/api
 npm install
 ```
 
-2. Khởi động server:
+### 2. Start the application
+
+#### Production mode
 
 ```bash
-# Chạy production (node)
 npm start
+```
 
-# Hoặc chế độ phát triển với nodemon
+#### Development mode (with nodemon)
+
+```bash
 npm run dev
 ```
 
-3. Mở trình duyệt vào: `http://localhost:3000/` — trang UI sẽ hiển thị danh sách sản phẩm và cung cấp các thao tác Add / Edit / Delete.
+### 3. Access the application
 
-**API (JSON) — endpoints chính**
-- `GET /products` — lấy danh sách sản phẩm.
-- `GET /products/:id` — lấy chi tiết 1 sản phẩm.
-- `POST /products` — tạo mới. Được hỗ trợ multipart form-data để upload ảnh (field file: `imageFile`) và các field text: `name`, `price`, `color`, `description`.
-- `PUT /products/:id` — thay thế toàn bộ product. Hỗ trợ upload file theo multipart.
-- `PATCH /products/:id` — cập nhật một phần. Hỗ trợ upload file theo multipart.
-- `DELETE /products/:id` — xóa product và xóa file ảnh tương ứng nếu ảnh được lưu trong `/uploads/`.
-
-Ví dụ tạo product (curl, upload file):
+Open your browser and navigate to:
 
 ```bash
-curl -X POST -F "name=My Device" -F "price=199" -F "color=black" -F "description=Note" -F "imageFile=@/path/to/photo.jpg" http://localhost:3000/products
+http://localhost:3000
 ```
 
-Lưu ý: UI trên trang chủ sử dụng fetch + FormData để gửi file, nên bạn không cần thay đổi gì nếu dùng giao diện.
+---
 
-**Behavior quan trọng**
-- Khi khởi động, `main.js` cố gắng connect tới MongoDB với `serverSelectionTimeoutMS: 3000`. Nếu thất bại, ứng dụng sẽ in log và dùng `in-memory` suốt vòng đời process.
-- Khi MongoDB thành công và collection `products` rỗng, repo sẽ seed 10 sản phẩm Apple mẫu (có `name`, `price`, `color`, `description`, `imageUrl` mặc định rỗng).
-- Ảnh được lưu trên đĩa tại `public/uploads/` và được phục vụ tĩnh bởi Express; đường dẫn lưu trong DB là tương đối (`/uploads/<filename>`).
-- Khi cập nhật ảnh mới cho một product, file cũ nếu có và nằm trong `/uploads/` sẽ bị xóa.
+## 7. API Endpoints
 
-**Giới hạn & khuyến nghị**
-- Hiện tại server cho phép upload file và lưu trực tiếp trên đĩa — phù hợp cho demo và môi trường dev, nhưng không tối ưu cho production (về backup, scale và băng thông). Với môi trường production, nên dùng lưu trữ cloud (S3/Cloudinary) và chỉ lưu URL trong DB.
-- Thêm giới hạn kích thước file và kiểm tra MIME type nếu bạn muốn an toàn hơn. Tôi có thể thêm cấu hình `multer` để giới hạn kích thước (ví dụ 2MB) và whitelist `image/*`.
+| Method | Endpoint      | Description                |
+| ------ | ------------- | -------------------------- |
+| GET    | /products     | Get all products           |
+| GET    | /products/:id | Get product by ID          |
+| POST   | /products     | Create a new product       |
+| PUT    | /products/:id | Replace a product          |
+| PATCH  | /products/:id | Update a product partially |
+| DELETE | /products/:id | Delete a product           |
 
-**Một số lệnh tiện ích**
-- Cài thêm `nodemon` global (nếu muốn): `npm i -g nodemon`.
-- Xem log server (stdout) để biết liệu app đang dùng `mongodb` hay `in-memory`.
+---
 
-**Tôi có thể giúp tiếp**
-- Thêm giới hạn kích thước file và kiểm tra MIME type.
-- Hoặc chuyển lưu trữ ảnh sang S3/Cloudinary (cần credentials).
-- Thêm trang chi tiết sản phẩm hoặc phân trang cho danh sách.
+## 8. System Behavior
 
-Nếu bạn muốn tôi cập nhật README để ghi rõ cách migrate dữ liệu, cách reset uploads hoặc ví dụ cụ thể hơn, cho biết yêu cầu cụ thể và tôi sẽ bổ sung.
+The application attempts to connect to MongoDB on startup with a 3-second timeout
 
+If the connection fails, it switches to in-memory mode
+
+When MongoDB is available and empty, the system automatically seeds sample products
+
+Uploaded images are stored in:
+
+```bash
+public/uploads/
+```
+
+When updating or deleting a product, old image files are automatically removed if applicable
+
+---
+
+## 9. Limitations & Recommendations
+
+- Storing images on the local server is suitable for development only
+
+- For production environments, it is recommended to use cloud storage such as:
+  - Amazon S3
+
+  - Cloudinary
+
+- Additional improvements could include:
+  - File size limits for uploads
+
+  - MIME type validation (e.g., image/\*)
+
+  - Authentication and authorization##
+
+---
+
+## 10. Notes
+
+- The application logs indicate whether the current data source is:
+  - mongodb
+
+  - in-memory
+
+- You can install nodemon globally for development:
+
+```bash
+npm install -g nodemon
+```
