@@ -96,7 +96,30 @@ function createAppleProducts() {
 
 async function init(useMongo) {
   isMongo = !!useMongo;
-  inMemory = [];
+  // seed in-memory array always
+  inMemory = createAppleProducts();
+
+  if (isMongo) {
+    try {
+      const count = await ProductModel.countDocuments();
+      if (count === 0) {
+        // seed mongodb with items mapped to schema (exclude in-memory id)
+        const docs = inMemory.map(
+          ({ name, price, color, description, imageUrl }) => ({
+            name,
+            price,
+            color,
+            description,
+            imageUrl,
+          }),
+        );
+        await ProductModel.insertMany(docs);
+      }
+    } catch (err) {
+      // if anything goes wrong, fall back to in-memory
+      isMongo = false;
+    }
+  }
 }
 
 // Helpers to adapt mongo documents to expected output (include id)
