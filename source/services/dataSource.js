@@ -125,7 +125,16 @@ async function init(useMongo) {
 // Helpers to adapt mongo documents to expected output (include id)
 // Code feature (CRUD standby)
 function toDTO(doc) {
-  return doc;
+  if (!doc) return null;
+  if (doc.id) return doc; // in-memory
+  return {
+    id: doc._id.toString(),
+    name: doc.name,
+    price: doc.price,
+    color: doc.color,
+    description: doc.description || null,
+    imageUrl: doc.imageUrl || "",
+  };
 }
 
 async function getAll() {
