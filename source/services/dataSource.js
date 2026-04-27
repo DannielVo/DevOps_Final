@@ -138,19 +138,64 @@ function toDTO(doc) {
 }
 
 async function getAll() {
-  return [];
+  if (isMongo) {
+    const docs = await ProductModel.find().lean();
+    return docs.map(toDTO);
+  }
+  return inMemory.slice();
 }
 
 async function getById(id) {
-  return null;
+  if (isMongo) {
+    const doc = await ProductModel.findById(id).lean();
+    return toDTO(doc);
+  }
+  return inMemory.find((p) => p.id === id) || null;
 }
 
 async function create(payload) {
-  return null;
+  if (isMongo) {
+    const doc = await ProductModel.create(payload);
+    return toDTO(doc.toObject());
+  }
+  const item = { id: uuidv4(), ...payload };
+  inMemory.push(item);
+  return item;
 }
 
 async function replace(id, payload) {
-  return null;
+  if (isMongo) {
+    const doc = await ProductModel.findByIdAndUpdate(id, payload, {
+      new: true,
+      runValidators: true,
+    }).lean();
+    return toDTO(doc);
+  }
+  const idx = inMemory.findIndex((p) => p.id === id);
+  if (idx === -1) return null;
+  const prev = inMemory[idx];
+  // if payload contains imageUrl and prev had a local upload, remove old file
+  if (
+    payload.imageUrl &&
+    prev &&
+    prev.imageUrl &&
+    prev.imageUrl.startsWith("/uploads/")
+  ) {
+    const filePath = path.join(
+      __dirname,
+      "..",
+      "public",
+      prev.imageUrl.substring(1),
+    );
+    try {
+      await fs.unlink(filePath);
+    } catch (e) {
+      /* ignore */
+    }
+  }
+  const item = { id, ...payload };
+  inMemory[idx] = item;
+  return item;
 }
 
 async function patch(id, payload) {
