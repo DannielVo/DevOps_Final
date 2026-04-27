@@ -1,15 +1,15 @@
-// Core code
+// Code sườn
 const express = require("express");
 const router = express.Router();
+const controller = require("../controllers/productController");
+
+// Code feature
+const validators = require("../validators/productValidator");
 const { validationResult } = require("express-validator");
 const multer = require("multer");
 const path = require("path");
 
-// Code feature wiring
-const controller = require("../controllers/productController");
-const validators = require("../validators/productValidator");
-
-// multer storage config (feature upload)
+// multer storage config
 const storage = multer.diskStorage({
   destination: function (req, file, cb) {
     cb(null, path.join(__dirname, "..", "public", "uploads"));
@@ -20,7 +20,6 @@ const storage = multer.diskStorage({
     cb(null, safe);
   },
 });
-
 const upload = multer({ storage });
 
 function handleValidation(req, res, next) {
@@ -30,7 +29,7 @@ function handleValidation(req, res, next) {
   next();
 }
 
-// Feature endpoints (standby)
+// Lọc lại, chỉ để lại sườn (router.method("...", controller.))
 router.get("/", controller.list);
 router.get("/:id", controller.getOne);
 router.post(
