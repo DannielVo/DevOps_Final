@@ -52,11 +52,10 @@ source/
 
 ## 5. Environment Configuration
 
-Create a `.env` file in the root directory:
+Create a `.env` file in the root directory by copying the example file:
 
 ```bash
-PORT=3000
-MONGO_URI=mongodb://localhost:27017/products_db
+cp .env.example .env
 ```
 
 If authentication is required, update the MongoDB URI accordingly.
