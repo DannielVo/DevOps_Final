@@ -1,0 +1,5 @@
+# Terraform
+infrastructure/terraform.tfvars
+
+# AWS key
+*.pem
