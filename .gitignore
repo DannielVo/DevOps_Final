@@ -1,5 +1,8 @@
 # Terraform
-infrastructure/terraform.tfvars
+.terraform/
+*.tfstate
+*.tfstate.backup
+terraform.tfvars
 
-# AWS key
+# AWS keys
 *.pem
