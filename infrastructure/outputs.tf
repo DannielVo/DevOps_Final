@@ -1,7 +1,7 @@
-output "public_ip" {
-  value = aws_instance.app_server.public_ip
+output "manager_ip" {
+  value = aws_instance.manager.public_ip
 }
 
-output "app_url" {
-  value = "http://${aws_instance.app_server.public_ip}:3000"
+output "worker_ips" {
+  value = aws_instance.worker[*].public_ip
 }
