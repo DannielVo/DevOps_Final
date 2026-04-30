@@ -1,0 +1,3 @@
+ami_id      = "ami-xxxxxxxx"
+key_name    = "your-key-name"
+image_name  = "admin123/myapp"
