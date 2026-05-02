@@ -2,7 +2,7 @@ version: "3.8"
 
 services:
   app:
-    image: tn74582/myapp:latest
+    image: ${IMAGE_NAME}:${TAG}
     ports:
       - "3000:3000"
     deploy:
