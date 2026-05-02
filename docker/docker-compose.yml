@@ -1,0 +1,37 @@
+version: "3.9"
+
+services:
+  web:
+    build:
+      context: .. # root project
+      dockerfile: docker/Dockerfile
+    container_name: web-app
+    restart: unless-stopped
+
+    env_file:
+      - ../source/.env
+
+    ports:
+      - "3000:3000"
+
+    depends_on:
+      - mongodb
+
+    volumes:
+      - uploads:/app/public/uploads
+
+  mongodb:
+    image: mongo:6.0
+    container_name: mongodb
+    restart: unless-stopped
+
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: ${MONGO_INITDB_ROOT_USERNAME}
+      MONGO_INITDB_ROOT_PASSWORD: ${MONGO_INITDB_ROOT_PASSWORD}
+
+    volumes:
+      - mongodb_data:/data/db
+
+volumes:
+  mongodb_data:
+  uploads:
