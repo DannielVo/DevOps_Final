@@ -1,0 +1,44 @@
+name: CD Pipeline (Deploy to Swarm)
+
+on:
+  push:
+    branches: [development]
+
+env:
+  IMAGE_NAME: ${{ vars.IMAGE_NAME }}
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      # 1. Checkout source
+      - name: Checkout source code
+        uses: actions/checkout@v4
+
+      # 2. Login Docker Hub
+      - name: Login Docker Hub
+        run: echo "${{ secrets.DOCKER_PASS }}" | docker login -u "${{ secrets.DOCKER_USER }}" --password-stdin
+
+      # 3. Pull latest image (optional but good)
+      - name: Pull latest image
+        run: docker pull $IMAGE_NAME:latest
+
+      # 4. Setup SSH key
+      - name: Setup SSH
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.EC2_SSH_KEY }}" > ~/.ssh/id_rsa
+          chmod 600 ~/.ssh/id_rsa
+
+      # 5. Add server to known_hosts
+      - name: Add known hosts
+        run: ssh-keyscan -H ${{ secrets.EC2_HOST }} >> ~/.ssh/known_hosts
+
+      # 6. Deploy to Swarm (SSH vào manager)
+      - name: Deploy to Docker Swarm
+        run: |
+          ssh ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }} << 'EOF'
+            docker pull $IMAGE_NAME:latest
+            docker stack deploy -c docker-stack.yml myapp
+          EOF
