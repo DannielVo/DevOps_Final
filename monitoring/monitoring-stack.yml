@@ -3,8 +3,9 @@ version: "3.8"
 services:
   prometheus:
     image: prom/prometheus:v2.50.0
-    volumes:
-      - ./prometheus.yml:/etc/prometheus/prometheus.yml
+    configs:
+      - source: prom_config
+        target: /etc/prometheus/prometheus.yml
     networks:
       - web
     deploy:
@@ -43,6 +44,10 @@ services:
       - web
     deploy:
       mode: global
+
+configs:
+  prom_config:
+    file: ./prometheus.yml
 
 volumes:
   grafana_data:
