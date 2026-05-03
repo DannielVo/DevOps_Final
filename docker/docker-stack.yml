@@ -20,15 +20,20 @@ services:
         # Domain
         - "traefik.http.routers.app.rule=Host(`blackopssquads.online`,`www.blackopssquads.online`)"
 
-        # HTTP (cho Let's Encrypt)
-        - "traefik.http.routers.app-http.entrypoints=web"
+        # HTTP
         - "traefik.http.routers.app-http.rule=Host(`blackopssquads.online`,`www.blackopssquads.online`)"
+        - "traefik.http.routers.app-http.entrypoints=web"
+        - "traefik.http.routers.app-http.service=app"
 
         # HTTPS
         - "traefik.http.routers.app.entrypoints=websecure"
         - "traefik.http.routers.app.tls.certresolver=myresolver"
 
-        # Internal port
+        # Redirect HTTP to HTTPS
+        - "traefik.http.middlewares.redirect-to-https.redirectscheme.scheme=https"
+        - "traefik.http.routers.app-http.middlewares=redirect-to-https"
+
+        # Service port
         - "traefik.http.services.app.loadbalancer.server.port=3000"
 
 networks:
