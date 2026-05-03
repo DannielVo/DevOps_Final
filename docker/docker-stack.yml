@@ -3,11 +3,23 @@ version: "3.8"
 services:
   app:
     image: ${IMAGE_NAME}:${TAG}
-    ports:
-      - "3000:3000"
+
     deploy:
       replicas: 3
       restart_policy:
         condition: on-failure
       placement:
         max_replicas_per_node: 1
+
+      labels:
+        - "traefik.enable=true"
+
+        # Domain
+        - "traefik.http.routers.app.rule=Host(`blackopssquads.online`)"
+
+        # HTTPS
+        - "traefik.http.routers.app.entrypoints=websecure"
+        - "traefik.http.routers.app.tls.certresolver=myresolver"
+
+        # Internal port
+        - "traefik.http.services.app.loadbalancer.server.port=3000"
