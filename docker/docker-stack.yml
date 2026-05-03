@@ -6,6 +6,7 @@ services:
 
     networks:
       - web
+      - internal
 
     environment:
       - MONGO_URI=mongodb://admin:123456@mongo:27017/products_db?authSource=admin
@@ -50,7 +51,7 @@ services:
     image: mongo:6
 
     networks:
-      - web
+      - internal
 
     environment:
       - MONGO_INITDB_ROOT_USERNAME=admin
@@ -70,3 +71,6 @@ volumes:
 networks:
   web:
     external: true
+  internal:
+    driver: overlay
+    attachable: false
