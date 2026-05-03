@@ -27,6 +27,29 @@ app.use("/products", productRoutes);
 // ==== Code sườn ====
 const PORT = process.env.PORT || 3000;
 
+async function connectWithRetry(mongoUri) {
+  const maxRetries = 10;
+  const delay = 3000;
+
+  for (let i = 1; i <= maxRetries; i++) {
+    try {
+      console.log(`Connecting to MongoDB (attempt ${i})...`);
+      await mongoose.connect(mongoUri, {
+        useNewUrlParser: true,
+        useUnifiedTopology: true,
+      });
+      console.log("Connected to MongoDB");
+      return true;
+    } catch (err) {
+      console.log("MongoDB connection failed: ", err.message);
+      await new Promise((res) => setTimeout(res, delay));
+    }
+  }
+
+  console.log("⚠️ Fallback to in-memory DB");
+  return false;
+}
+
 async function start() {
   // Đảm bảo thư mục uploads tồn tại
   const uploadsDir = path.join(__dirname, "public", "uploads");
@@ -38,21 +61,23 @@ async function start() {
   // Try to connect to MongoDB once with 3s timeout
   const mongoUri =
     process.env.MONGO_URI || "mongodb://localhost:27017/products_db";
-  let usingMongo = false;
-  try {
-    await mongoose.connect(mongoUri, {
-      useNewUrlParser: true,
-      useUnifiedTopology: true,
-      serverSelectionTimeoutMS: 3000,
-    });
-    usingMongo = true;
-    console.log("Connected to MongoDB — using mongodb as data source.");
-  } catch (err) {
-    usingMongo = false;
-    console.log(
-      "Failed to connect to MongoDB within 3s — falling back to in-memory database.",
-    );
-  }
+  // let usingMongo = false;
+  // try {
+  //   await mongoose.connect(mongoUri, {
+  //     useNewUrlParser: true,
+  //     useUnifiedTopology: true,
+  //     serverSelectionTimeoutMS: 3000,
+  //   });
+  //   usingMongo = true;
+  //   console.log("Connected to MongoDB — using mongodb as data source.");
+  // } catch (err) {
+  //   usingMongo = false;
+  //   console.log(
+  //     "Failed to connect to MongoDB within 3s — falling back to in-memory database.",
+  //   );
+  // }
+
+  const usingMongo = await connectWithRetry(mongoUri);
 
   await dataSource.init(usingMongo);
 
