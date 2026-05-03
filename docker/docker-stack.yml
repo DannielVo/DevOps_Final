@@ -17,6 +17,8 @@ services:
         condition: on-failure
       placement:
         max_replicas_per_node: 1
+        constraints:
+          - node.role == manager
 
       labels:
         - "traefik.enable=true"
