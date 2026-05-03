@@ -22,6 +22,7 @@ services:
 
       labels:
         - "traefik.enable=true"
+        - "traefik.docker.network=web"
 
         # Domain
         - "traefik.http.routers.app.rule=Host(`blackopssquads.online`,`www.blackopssquads.online`)"
