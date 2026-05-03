@@ -46,12 +46,6 @@ services:
         # Service port
         - "traefik.http.services.app.loadbalancer.server.port=3000"
 
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:3000"]
-      interval: 10s
-      timeout: 5s
-      retries: 3
-
   mongo:
     image: mongo:6
 
