@@ -28,6 +28,7 @@ services:
         # HTTPS
         - "traefik.http.routers.app.entrypoints=websecure"
         - "traefik.http.routers.app.tls.certresolver=myresolver"
+        - "traefik.http.routers.app.service=app"
 
         # Redirect HTTP to HTTPS
         - "traefik.http.middlewares.redirect-to-https.redirectscheme.scheme=https"
