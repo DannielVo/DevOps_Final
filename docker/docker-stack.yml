@@ -16,7 +16,7 @@ services:
         - "traefik.enable=true"
 
         # Domain
-        - "traefik.http.routers.app.rule=Host(`blackopssquads.online`)"
+        - "traefik.http.routers.app.rule=Host(`blackopssquads.online`,`www.blackopssquads.online`)"
 
         # HTTPS
         - "traefik.http.routers.app.entrypoints=websecure"
