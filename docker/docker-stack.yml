@@ -29,13 +29,24 @@ services:
         - "traefik.http.routers.app.entrypoints=websecure"
         - "traefik.http.routers.app.tls.certresolver=myresolver"
         - "traefik.http.routers.app.service=app"
+        - "traefik.http.routers.app.tls=true"
 
         # Redirect HTTP to HTTPS
         - "traefik.http.middlewares.redirect-to-https.redirectscheme.scheme=https"
         - "traefik.http.routers.app-http.middlewares=redirect-to-https"
 
+        # Retry
+        - "traefik.http.middlewares.retry.retry.attempts=3"
+        - "traefik.http.routers.app.middlewares=retry"
+
         # Service port
         - "traefik.http.services.app.loadbalancer.server.port=3000"
+
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
 
 networks:
   web:
