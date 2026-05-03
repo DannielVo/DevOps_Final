@@ -2,8 +2,10 @@ version: "3.8"
 
 services:
   app:
-    # image: ${IMAGE_NAME}:${TAG}
     image: tn74582/myapp:latest
+
+    networks:
+      - web
 
     deploy:
       replicas: 3
@@ -18,9 +20,17 @@ services:
         # Domain
         - "traefik.http.routers.app.rule=Host(`blackopssquads.online`,`www.blackopssquads.online`)"
 
+        # HTTP (cho Let's Encrypt)
+        - "traefik.http.routers.app-http.entrypoints=web"
+        - "traefik.http.routers.app-http.rule=Host(`blackopssquads.online`,`www.blackopssquads.online`)"
+
         # HTTPS
         - "traefik.http.routers.app.entrypoints=websecure"
         - "traefik.http.routers.app.tls.certresolver=myresolver"
 
         # Internal port
         - "traefik.http.services.app.loadbalancer.server.port=3000"
+
+networks:
+  web:
+    external: true

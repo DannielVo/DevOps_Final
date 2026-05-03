@@ -29,6 +29,9 @@ services:
       - /var/run/docker.sock:/var/run/docker.sock:ro
       - traefik_letsencrypt:/letsencrypt
 
+    networks:
+      - web
+
     deploy:
       placement:
         constraints:
@@ -36,3 +39,7 @@ services:
 
 volumes:
   traefik_letsencrypt:
+
+networks:
+  web:
+    external: true
