@@ -2,12 +2,78 @@ version: "3.8"
 
 services:
   app:
-    image: ${IMAGE_NAME}:${TAG}
-    ports:
-      - "3000:3000"
+    image: tn74582/myapp:latest
+
+    networks:
+      - web
+      - internal
+
+    environment:
+      - MONGO_URI=mongodb://admin:123456@mongo:27017/products_db?authSource=admin
+
     deploy:
-      replicas: 3
+      replicas: 1
       restart_policy:
         condition: on-failure
       placement:
         max_replicas_per_node: 1
+        constraints:
+          - node.role == manager
+
+      labels:
+        - "traefik.enable=true"
+        - "traefik.docker.network=web"
+
+        # Domain
+        - "traefik.http.routers.app.rule=Host(`blackopssquads.online`,`www.blackopssquads.online`)"
+
+        # HTTP
+        - "traefik.http.routers.app-http.rule=Host(`blackopssquads.online`,`www.blackopssquads.online`)"
+        - "traefik.http.routers.app-http.entrypoints=web"
+        - "traefik.http.routers.app-http.service=app"
+
+        # HTTPS
+        - "traefik.http.routers.app.entrypoints=websecure"
+        - "traefik.http.routers.app.tls=true"
+        - "traefik.http.routers.app.tls.certresolver=myresolver"
+        - "traefik.http.routers.app.service=app"
+
+        # Redirect HTTP to HTTPS
+        - "traefik.http.middlewares.redirect-to-https.redirectscheme.scheme=https"
+        - "traefik.http.routers.app-http.middlewares=redirect-to-https"
+
+        # Retry
+        - "traefik.http.middlewares.retry.retry.attempts=3"
+        - "traefik.http.middlewares.retry.retry.initialinterval=100ms"
+        - "traefik.http.routers.app.middlewares=retry"
+
+        # Service port
+        - "traefik.http.services.app.loadbalancer.server.port=3000"
+
+  mongo:
+    image: mongo:6
+
+    networks:
+      - internal
+
+    environment:
+      - MONGO_INITDB_ROOT_USERNAME=admin
+      - MONGO_INITDB_ROOT_PASSWORD=123456
+
+    volumes:
+      - mongo_data:/data/db
+
+    deploy:
+      placement:
+        constraints:
+          - node.role == manager
+
+volumes:
+  mongo_data:
+
+networks:
+  web:
+    external: true
+  internal:
+    driver: overlay
+    attachable: false
