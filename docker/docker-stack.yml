@@ -7,8 +7,11 @@ services:
     networks:
       - web
 
+    environment:
+      - MONGO_URI=mongodb://mongo:27017/products_db
+
     deploy:
-      replicas: 3
+      replicas: 1
       restart_policy:
         condition: on-failure
       placement:
@@ -27,9 +30,9 @@ services:
 
         # HTTPS
         - "traefik.http.routers.app.entrypoints=websecure"
+        - "traefik.http.routers.app.tls=true"
         - "traefik.http.routers.app.tls.certresolver=myresolver"
         - "traefik.http.routers.app.service=app"
-        - "traefik.http.routers.app.tls=true"
 
         # Redirect HTTP to HTTPS
         - "traefik.http.middlewares.redirect-to-https.redirectscheme.scheme=https"
@@ -37,6 +40,7 @@ services:
 
         # Retry
         - "traefik.http.middlewares.retry.retry.attempts=3"
+        - "traefik.http.middlewares.retry.retry.initialinterval=100ms"
         - "traefik.http.routers.app.middlewares=retry"
 
         # Service port
@@ -47,6 +51,23 @@ services:
       interval: 10s
       timeout: 5s
       retries: 3
+
+  mongo:
+    image: mongo:6
+
+    networks:
+      - web
+
+    volumes:
+      - mongo_data:/data/db
+
+    deploy:
+      placement:
+        constraints:
+          - node.role == manager
+
+volumes:
+  mongo_data:
 
 networks:
   web:
