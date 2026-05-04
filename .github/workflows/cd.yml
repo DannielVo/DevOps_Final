@@ -16,6 +16,9 @@ jobs:
       github.event.workflow_run.head_branch == 'main'
     runs-on: ubuntu-latest
     steps:
+      - name: Checkout source code
+        uses: actions/checkout@v4
+
       - name: Set TAG from CI
         run: echo "TAG=${{ github.event.workflow_run.head_sha }}" >> $GITHUB_ENV
 
