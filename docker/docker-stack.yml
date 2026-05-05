@@ -76,4 +76,4 @@ networks:
     external: true
   internal:
     driver: overlay
-    attachable: false
+    attachable: true
